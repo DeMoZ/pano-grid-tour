@@ -1,0 +1,82 @@
+:root {
+  color-scheme: light;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #111827;
+}
+
+.demo {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.demo-header h1 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+}
+
+.demo-header p {
+  margin: 0 0 12px;
+  color: #4b5563;
+}
+
+.demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.demo-file {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.demo-file input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.demo-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.demo-lang select {
+  min-height: 44px;
+  font: inherit;
+  font-size: 16px;
+}
+
+.demo-viewer {
+  height: min(75vh, 720px);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.demo-json textarea {
+  width: 100%;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+}
+
+.demo-error {
+  color: #b91c1c;
+}

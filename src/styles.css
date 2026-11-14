@@ -1,0 +1,671 @@
+/*
+ * pano-grid-tour styles. Theme with the custom properties on .pgt-editor / .pgt-viewer
+ * (or any ancestor). Photo Sphere Viewer's own stylesheets are imported by the host:
+ *   @photo-sphere-viewer/core/index.css
+ *   @photo-sphere-viewer/virtual-tour-plugin/index.css
+ */
+.pgt-theme,
+.pgt-editor,
+.pgt-viewer,
+.pgt-dialog {
+  --pgt-bg: #ffffff;
+  --pgt-fg: #111827;
+  --pgt-muted: #4b5563;
+  --pgt-border: #d1d5db;
+  --pgt-grid: #e5e7eb;
+  --pgt-grid-bg: #f9fafb;
+  --pgt-accent: #2563eb;
+  --pgt-accent-fg: #ffffff;
+  --pgt-room: #dbeafe;
+  --pgt-room-stroke: #1e3a8a;
+  --pgt-link: #b45309;
+  --pgt-danger: #b91c1c;
+  --pgt-ok: #15803d;
+  --pgt-radius: 8px;
+  --pgt-tap: 44px;
+  color: var(--pgt-fg);
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.pgt-editor *,
+.pgt-viewer *,
+.pgt-dialog * {
+  box-sizing: border-box;
+}
+
+/* ---------- Editor ---------- */
+
+.pgt-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--pgt-bg);
+}
+
+.pgt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pgt-toolbar-end,
+.pgt-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pgt-segmented {
+  display: inline-flex;
+  border: 1px solid var(--pgt-border);
+  border-radius: var(--pgt-radius);
+  overflow: hidden;
+}
+
+.pgt-segmented .pgt-button {
+  border: 0;
+  border-radius: 0;
+}
+
+.pgt-segmented .pgt-button + .pgt-button {
+  border-left: 1px solid var(--pgt-border);
+}
+
+.pgt-button {
+  min-height: var(--pgt-tap);
+  min-width: var(--pgt-tap);
+  padding: 0 14px;
+  border: 1px solid var(--pgt-border);
+  border-radius: var(--pgt-radius);
+  background: var(--pgt-bg);
+  color: var(--pgt-fg);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pgt-button:hover:not(:disabled) {
+  border-color: var(--pgt-accent);
+}
+
+.pgt-button[aria-pressed="true"],
+.pgt-button.is-primary {
+  background: var(--pgt-accent);
+  border-color: var(--pgt-accent);
+  color: var(--pgt-accent-fg);
+}
+
+.pgt-button.is-danger {
+  color: var(--pgt-danger);
+}
+
+.pgt-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pgt-button:focus-visible,
+.pgt-link-button:focus-visible,
+.pgt-picker-item:focus-visible,
+.pgt-editor input:focus-visible {
+  outline: 3px solid var(--pgt-accent);
+  outline-offset: 2px;
+}
+
+.pgt-link-button {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pgt-accent);
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.pgt-hint {
+  margin: 0;
+  color: var(--pgt-muted);
+  font-size: 0.9em;
+}
+
+.pgt-editor-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 960px) {
+  .pgt-editor-body {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+  }
+}
+
+.pgt-canvas-wrap {
+  min-width: 0;
+}
+
+.pgt-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Leaves room above and below to scroll the page with a finger. */
+  max-height: 60vh;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Every finger gesture on the plan is an edit. Browsers ignore touch-action on shapes
+     inside an SVG, so it has to be the whole canvas. */
+  touch-action: none;
+}
+
+@media (min-width: 960px) {
+  .pgt-canvas {
+    max-height: 75vh;
+  }
+}
+
+.pgt-canvas.tool-room {
+  cursor: crosshair;
+}
+
+.pgt-grid-bg {
+  fill: var(--pgt-grid-bg);
+}
+
+.pgt-grid-lines line {
+  stroke: var(--pgt-grid);
+  stroke-width: 0.03;
+}
+
+.pgt-grid-up {
+  fill: var(--pgt-muted);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.pgt-room {
+  cursor: move;
+  outline: none;
+}
+
+.tool-link .pgt-room {
+  cursor: pointer;
+}
+
+.pgt-room-fill {
+  fill: var(--pgt-room);
+}
+
+.pgt-room-image {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.pgt-room-outline {
+  fill: none;
+  stroke: var(--pgt-room-stroke);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.pgt-room.is-selected .pgt-room-outline,
+.pgt-room:focus-visible .pgt-room-outline {
+  stroke: var(--pgt-accent);
+  stroke-width: 3px;
+}
+
+.pgt-room.is-link-source .pgt-room-outline {
+  stroke: var(--pgt-link);
+  stroke-width: 3px;
+  stroke-dasharray: 6 4;
+}
+
+.pgt-room-name {
+  fill: var(--pgt-fg);
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.pgt-room-start {
+  fill: #ca8a04;
+  dominant-baseline: hanging;
+  pointer-events: none;
+}
+
+.pgt-room-flag circle {
+  fill: var(--pgt-danger);
+}
+
+.pgt-room-flag text {
+  fill: #fff;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.pgt-room-draft {
+  fill: var(--pgt-accent);
+  fill-opacity: 0.2;
+  stroke: var(--pgt-accent);
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.pgt-link-line,
+.pgt-link-pending {
+  stroke: var(--pgt-link);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.pgt-link.is-one-way .pgt-link-line {
+  stroke-dasharray: 8 5;
+}
+
+.pgt-link-pending {
+  stroke-dasharray: 4 4;
+}
+
+.pgt-link-end {
+  fill: var(--pgt-link);
+  pointer-events: none;
+}
+
+.pgt-link-badge {
+  cursor: pointer;
+  outline: none;
+}
+
+.pgt-link-hit,
+.pgt-handle-hit {
+  fill: transparent;
+}
+
+.pgt-link-dot {
+  fill: #fff;
+  stroke: var(--pgt-link);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.pgt-link-glyph {
+  fill: var(--pgt-link);
+  pointer-events: none;
+}
+
+.pgt-link.is-selected .pgt-link-line {
+  stroke-width: 4px;
+}
+
+.pgt-link.is-selected .pgt-link-dot,
+.pgt-link-badge:focus-visible .pgt-link-dot {
+  fill: var(--pgt-link);
+}
+
+.pgt-link.is-selected .pgt-link-glyph {
+  fill: #fff;
+}
+
+.pgt-handle {
+  cursor: pointer;
+}
+
+.handle-n,
+.handle-s {
+  cursor: ns-resize;
+}
+
+.handle-e,
+.handle-w {
+  cursor: ew-resize;
+}
+
+.handle-ne,
+.handle-sw {
+  cursor: nesw-resize;
+}
+
+.handle-nw,
+.handle-se {
+  cursor: nwse-resize;
+}
+
+.pgt-handle-dot {
+  fill: #fff;
+  stroke: var(--pgt-accent);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.pgt-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pgt-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--pgt-border);
+  border-radius: var(--pgt-radius);
+}
+
+.pgt-panel p {
+  margin: 0;
+}
+
+.pgt-panel-title {
+  margin: 0;
+  font-size: 1.05em;
+}
+
+.pgt-panel-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.95em;
+}
+
+.pgt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pgt-field > span {
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.pgt-field input[type="text"],
+.pgt-inline-field input {
+  min-height: var(--pgt-tap);
+  padding: 0 10px;
+  border: 1px solid var(--pgt-border);
+  border-radius: var(--pgt-radius);
+  background: var(--pgt-bg);
+  color: var(--pgt-fg);
+  font: inherit;
+  /* 16px keeps iOS from zooming into the field. */
+  font-size: max(16px, 1em);
+}
+
+.pgt-inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pgt-inline-field input {
+  width: 5.5em;
+}
+
+.pgt-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.pgt-radios label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--pgt-tap);
+}
+
+.pgt-radios input {
+  width: 20px;
+  height: 20px;
+}
+
+.pgt-muted {
+  color: var(--pgt-muted);
+  font-size: 0.9em;
+}
+
+.pgt-ok {
+  color: var(--pgt-ok);
+}
+
+.pgt-issues,
+.pgt-exits {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pgt-exits li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--pgt-grid);
+}
+
+.pgt-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.pgt-picker-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: var(--pgt-tap);
+  padding: 4px;
+  border: 2px solid var(--pgt-border);
+  border-radius: var(--pgt-radius);
+  background: var(--pgt-bg);
+  color: var(--pgt-fg);
+  font: inherit;
+  font-size: 0.85em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pgt-picker-item.is-none {
+  justify-content: center;
+  align-items: center;
+}
+
+.pgt-picker-item[aria-checked="true"] {
+  border-color: var(--pgt-accent);
+  background: color-mix(in srgb, var(--pgt-accent) 10%, var(--pgt-bg));
+}
+
+.pgt-picker-item img {
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.pgt-picker-item small {
+  color: var(--pgt-muted);
+}
+
+.pgt-room-preview {
+  position: relative;
+  height: 240px;
+  border-radius: var(--pgt-radius);
+  overflow: hidden;
+}
+
+.pgt-room-preview .pgt-viewer {
+  height: 100%;
+}
+
+.pgt-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 40px;
+  width: 0;
+  border-left: 2px dashed rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* ---------- Viewer ---------- */
+
+.pgt-viewer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  background: #000;
+}
+
+.pgt-viewer-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.pgt-viewer-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 240px;
+  padding: 16px;
+  color: #e5e7eb;
+  text-align: center;
+}
+
+.pgt-minimap {
+  position: absolute;
+  z-index: 100;
+  left: 8px;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: min(40%, 220px);
+  padding: 6px;
+  border-radius: var(--pgt-radius);
+  background: rgba(17, 24, 39, 0.72);
+  color: #fff;
+}
+
+.pgt-minimap.is-closed {
+  width: auto;
+}
+
+.pgt-minimap-toggle {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+.pgt-minimap-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 40vh;
+}
+
+.pgt-minimap-room rect {
+  fill: rgba(255, 255, 255, 0.18);
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.pgt-minimap-room[role="button"] {
+  cursor: pointer;
+  outline: none;
+}
+
+.pgt-minimap-room[role="button"]:hover rect,
+.pgt-minimap-room[role="button"]:focus-visible rect {
+  fill: rgba(255, 255, 255, 0.4);
+}
+
+.pgt-minimap-room.is-current rect {
+  fill: rgba(37, 99, 235, 0.55);
+  stroke: #fff;
+  stroke-width: 2.5px;
+}
+
+.pgt-minimap-room.is-disabled rect {
+  fill: transparent;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+}
+
+.pgt-minimap-link {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.pgt-minimap-cone {
+  fill: rgba(250, 204, 21, 0.45);
+  stroke: rgba(250, 204, 21, 0.9);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.pgt-minimap-dot {
+  fill: #facc15;
+  stroke: #111827;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+/* ---------- Preview dialog ---------- */
+
+.pgt-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #000;
+}
+
+.pgt-dialog .pgt-viewer {
+  position: absolute;
+  inset: 0;
+}
+
+.pgt-dialog-close {
+  position: absolute;
+  z-index: 200;
+  top: 8px;
+  right: 8px;
+}
