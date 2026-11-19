@@ -106,6 +106,16 @@ npm run typecheck
 npm run build      # dist/ (library) — npm run build:demo for the demo site
 ```
 
+## Release
+
+1. Raise `version` in `package.json` in a pull request and merge it.
+2. Push the tag `v<version>` on that commit (`git tag v0.1.1 && git push origin v0.1.1`).
+3. The **Publish to npm** workflow checks the tag against `package.json`, runs the checks and publishes with
+   provenance.
+
+The workflow publishes through npm trusted publishing (`DeMoZ/pano-grid-tour`, workflow `publish.yml`, environment
+`npm`), or with an `NPM_TOKEN` secret in the `npm` environment where that isn't set up.
+
 ## Status
 
 Early: the API may change before 1.0. Planned next: pinch-zoom of the plan, several floors, info hotspots, gyroscope
