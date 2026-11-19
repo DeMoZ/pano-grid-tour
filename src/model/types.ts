@@ -38,7 +38,7 @@ export interface Room extends Rect {
   panoramaId?: string;
   /**
    * The panorama's own yaw, in degrees, that faces the top of the grid.
-   * 0 = the centre of the equirectangular image looks up the grid.
+   * 0 = the centre of the equirectangular image (or of a cubestrip's front face) looks up the grid.
    */
   heading: number;
 }
@@ -59,11 +59,26 @@ export interface Link {
   toBearing?: number;
 }
 
-/** A panorama the host can show: an equirectangular (2:1) image. */
+/** A face of a cube panorama, as seen from inside: `front` is yaw 0, `right` is yaw 90°. */
+export type CubeFace = "left" | "front" | "right" | "back" | "top" | "bottom";
+
+/**
+ * How the image holds the sphere:
+ * - `equirectangular`: one 2:1 image, yaw 0 at its centre;
+ * - `cubestrip`: six square faces side by side (6:1), in `cubeOrder`. The top face's
+ *   lower edge and the bottom face's upper edge touch the front face.
+ */
+export type Projection = "equirectangular" | "cubestrip";
+
+/** A panorama the host can show. */
 export interface PanoramaSource {
   id: string;
   /** Full-size image URL for the 360° viewer. */
   url: string;
+  /** Defaults to `equirectangular`. */
+  projection?: Projection;
+  /** Order of the faces in a cubestrip, left to right. Defaults to `CUBESTRIP_ORDER`. */
+  cubeOrder?: readonly CubeFace[];
   /** Small preview (any aspect ratio) for the editor and link tooltips. */
   thumbnailUrl?: string;
   /** Shown in the editor's picker. */

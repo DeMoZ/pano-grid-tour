@@ -1,4 +1,5 @@
 import type { VirtualTourNode } from "@photo-sphere-viewer/virtual-tour-plugin";
+import { cubeOrder, isCubestrip } from "../model/cubemap";
 import { exitsOf, roomName } from "../model/tour";
 import type { PanoramaSource, Room, Tour } from "../model/types";
 
@@ -16,7 +17,8 @@ export function sphereCorrection(room: Room): { pan: number } {
 
 /**
  * The tour as Photo Sphere Viewer nodes. Rooms without a known panorama are left out,
- * and so are the arrows leading to them.
+ * and so are the arrows leading to them. Cubestrips become cubemap panoramas: the viewer
+ * then needs the cubemap adapter (see `viewerProjection`).
  */
 export function tourToNodes(tour: Tour, panoramas: readonly PanoramaSource[], lang?: string): VirtualTourNode[] {
   const byId = new Map(panoramas.map((p) => [p.id, p]));
@@ -26,7 +28,7 @@ export function tourToNodes(tour: Tour, panoramas: readonly PanoramaSource[], la
     const source = byId.get(room.panoramaId!)!;
     const node: VirtualTourNode = {
       id: room.id,
-      panorama: source.url,
+      panorama: isCubestrip(source) ? { type: "stripe", path: source.url, order: [...cubeOrder(source)] } : source.url,
       name: roomName(room, lang),
       sphereCorrection: sphereCorrection(room),
       links: exitsOf(tour, room.id)
@@ -38,4 +40,17 @@ export function tourToNodes(tour: Tour, panoramas: readonly PanoramaSource[], la
     }
     return node;
   });
+}
+
+/**
+ * The projection one viewer uses for a tour: cubemap when every shown panorama is a
+ * cubestrip, equirectangular otherwise (cubestrips are then redrawn as equirectangular).
+ */
+export function viewerProjection(tour: Tour, panoramas: readonly PanoramaSource[]): "cubemap" | "equirectangular" {
+  const byId = new Map(panoramas.map((p) => [p.id, p]));
+  const shown = tour.rooms.flatMap((room) => {
+    const source = room.panoramaId ? byId.get(room.panoramaId) : undefined;
+    return source ? [source] : [];
+  });
+  return shown.length > 0 && shown.every(isCubestrip) ? "cubemap" : "equirectangular";
 }

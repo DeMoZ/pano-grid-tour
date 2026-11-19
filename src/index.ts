@@ -1,6 +1,6 @@
 import "./styles.css";
 
-export type { GridSize, Link, PanoramaSource, Rect, Room, Tour } from "./model/types";
+export type { CubeFace, GridSize, Link, PanoramaSource, Projection, Rect, Room, Tour } from "./model/types";
 export {
   addLink,
   addRoom,
@@ -27,7 +27,9 @@ export {
 export { bearing, center, normalizeDegrees } from "./model/geometry";
 export { parseTour } from "./model/parse";
 export { validateTour, issueRooms, type TourIssue } from "./model/validate";
-export { tourToNodes, sphereCorrection } from "./viewer/nodes";
+export { CUBESTRIP_ORDER, cubeLookup, detectProjection, isCubestrip } from "./model/cubemap";
+export { tourToNodes, sphereCorrection, viewerProjection } from "./viewer/nodes";
+export { cubestripFace, cubestripToEquirectangular } from "./viewer/cubestrip";
 export { defaultLabels, mergeLabels, type Labels } from "./labels";
 export { TourViewer, type TourViewerHandle, type TourViewerProps } from "./viewer/TourViewer";
 export { TourEditor, type TourEditorProps } from "./editor/TourEditor";

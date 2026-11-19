@@ -1,7 +1,7 @@
 # pano-grid-tour
 
 React components for 360° panorama tours of a flat or a house, laid out as **rooms on a grid** — no floor plan
-image needed. Draw a rectangle per room, put an equirectangular photo in it, link the rooms that have a doorway
+image needed. Draw a rectangle per room, put a 360° photo in it (equirectangular or cubestrip), link the rooms that have a doorway
 between them, and visitors walk from room to room with arrows (like Street View) or by tapping a room on the mini-map.
 
 Built on [Photo Sphere Viewer](https://photo-sphere-viewer.js.org) 5 and its Virtual Tour plugin.
@@ -17,7 +17,7 @@ Built on [Photo Sphere Viewer](https://photo-sphere-viewer.js.org) 5 and its Vir
 ## Install
 
 ```bash
-npm install pano-grid-tour @photo-sphere-viewer/core @photo-sphere-viewer/virtual-tour-plugin react react-dom
+npm install pano-grid-tour @photo-sphere-viewer/core @photo-sphere-viewer/virtual-tour-plugin @photo-sphere-viewer/cubemap-adapter react react-dom
 ```
 
 ## Use
@@ -56,11 +56,27 @@ function Page({ tour }: { tour: Tour }) {
 - Theming: override the `--pgt-*` custom properties (see `src/styles.css`) on `.pgt-editor`, `.pgt-viewer` or
   `.pgt-theme`.
 
+## Photo formats
+
+- **Equirectangular** (2:1, the default).
+- **Cubestrip** (6:1): six square faces in a row. Mark it with `projection: "cubestrip"`; the faces are read in
+  `CUBESTRIP_ORDER` (right, left, top, bottom, front, back) unless `cubeOrder` says otherwise. The top face's lower
+  edge and the bottom face's upper edge touch the front face. `detectProjection(width, height)` tells the two apart by
+  size, and `cubestripFace(source)` cuts the front face out as a thumbnail.
+
+```ts
+{ id: "p3", url: "/photos/bedroom-strip.jpg", projection: "cubestrip", thumbnailUrl: "/photos/bedroom-front.jpg" }
+```
+
+A tour whose photos are all cubestrips is shown with Photo Sphere Viewer's cubemap adapter (no resampling). One
+viewer shows one projection, so in a tour that mixes both kinds the cubestrips are redrawn as equirectangular images
+in the browser (`cubestripToEquirectangular`, up to 4096 px wide) before the tour opens.
+
 ## How directions work
 
 - Rooms live on a grid of whole cells: `x` to the right, `y` down. **The top of the grid is "up" for the whole
   tour.**
-- `room.heading` is the photo's own yaw (degrees, 0 = the middle of the image) that faces the top of the grid. The
+- `room.heading` is the photo's own yaw (degrees, 0 = the middle of the image, or of a cubestrip's front face) that faces the top of the grid. The
   viewer turns every photo by its heading, so looking "up" means the same direction in every room and walking through
   a door keeps the direction you were facing.
 - An arrow's direction (a _bearing_, degrees clockwise from up) is computed from the centres of the two rooms. When a

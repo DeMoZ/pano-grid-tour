@@ -44,6 +44,7 @@
   },
   "peerDependencies": {
     "@photo-sphere-viewer/core": "^5.15.1",
+    "@photo-sphere-viewer/cubemap-adapter": "^5.15.1",
     "@photo-sphere-viewer/markers-plugin": "^5.15.1",
     "@photo-sphere-viewer/virtual-tour-plugin": "^5.15.1",
     "react": "^19.0.0",
@@ -51,6 +52,7 @@
   },
   "devDependencies": {
     "@photo-sphere-viewer/core": "^5.15.1",
+    "@photo-sphere-viewer/cubemap-adapter": "^5.15.1",
     "@photo-sphere-viewer/markers-plugin": "^5.15.1",
     "@photo-sphere-viewer/virtual-tour-plugin": "^5.15.1",
     "@types/react": "^19.3.0",

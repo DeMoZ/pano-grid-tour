@@ -5,6 +5,7 @@
 export interface Labels {
   // Viewer
   emptyTour: string;
+  loading: string;
   showMap: string;
   hideMap: string;
   goToRoom: (name: string) => string;
@@ -73,6 +74,7 @@ export interface Labels {
 
 export const defaultLabels: Labels = {
   emptyTour: "No panoramas in this tour yet.",
+  loading: "Loading…",
   showMap: "Show map",
   hideMap: "Hide map",
   goToRoom: (name) => `Go to ${name}`,

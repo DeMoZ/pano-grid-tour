@@ -1,12 +1,15 @@
+import { CubemapAdapter } from "@photo-sphere-viewer/cubemap-adapter";
 import { Viewer } from "@photo-sphere-viewer/core";
 import { VirtualTourPlugin, type VirtualTourNode } from "@photo-sphere-viewer/virtual-tour-plugin";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { mergeLabels, type Labels } from "../labels";
+import { isCubestrip } from "../model/cubemap";
 import { normalizeDegrees } from "../model/geometry";
 import { startRoom } from "../model/tour";
 import type { PanoramaSource, Tour } from "../model/types";
 import { MiniMap } from "./MiniMap";
-import { toDegrees, toRadians, tourToNodes } from "./nodes";
+import { cubestripToEquirectangular } from "./cubestrip";
+import { toDegrees, toRadians, tourToNodes, viewerProjection } from "./nodes";
 
 export interface TourViewerProps {
   tour: Tour;
@@ -48,23 +51,73 @@ export const TourViewer = forwardRef<TourViewerHandle, TourViewerProps>(function
   const onRoomChangeRef = useRef(onRoomChange);
   onRoomChangeRef.current = onRoomChange;
 
-  const nodes = useMemo(() => tourToNodes(tour, panoramas, lang), [tour, panoramas, lang]);
+  // One viewer shows one projection. In a tour that mixes cubestrips with equirectangular
+  // photos, the cubestrips are redrawn as equirectangular ones (once per photo).
+  const projection = useMemo(() => viewerProjection(tour, panoramas), [tour, panoramas]);
+  const [converted, setConverted] = useState<ReadonlyMap<string, string>>(new Map());
+  const converting = useRef(new Map<string, string>());
+  const pendingIds = useMemo(() => {
+    if (projection === "cubemap") {
+      return [];
+    }
+    const used = new Set(tour.rooms.map((room) => room.panoramaId));
+    return panoramas.filter((p) => isCubestrip(p) && used.has(p.id) && !converted.has(p.id)).map((p) => p.id);
+  }, [projection, tour, panoramas, converted]);
+
+  useEffect(() => {
+    for (const source of panoramas) {
+      if (!pendingIds.includes(source.id) || converting.current.get(source.id) === source.url) {
+        continue;
+      }
+      converting.current.set(source.id, source.url);
+      void cubestripToEquirectangular(source).then(
+        (url) => setConverted((map) => new Map(map).set(source.id, url)),
+        () => undefined,
+      );
+    }
+  }, [pendingIds, panoramas]);
+
+  const convertedRef = useRef(converted);
+  convertedRef.current = converted;
+  useEffect(() => () => convertedRef.current.forEach((url) => URL.revokeObjectURL(url)), []);
+
+  const shownPanoramas = useMemo(() => {
+    if (projection === "cubemap") {
+      return panoramas;
+    }
+    return panoramas.flatMap((p) => {
+      if (!isCubestrip(p)) {
+        return [p];
+      }
+      const url = converted.get(p.id);
+      return url ? [{ ...p, url, projection: "equirectangular" as const }] : [];
+    });
+  }, [projection, panoramas, converted]);
+
+  const nodes = useMemo(() => tourToNodes(tour, shownPanoramas, lang), [tour, shownPanoramas, lang]);
   const available = useMemo(() => new Set(nodes.map((n) => n.id)), [nodes]);
   const initialRoom = roomId && available.has(roomId) ? roomId : startRoom(tour)?.id;
   const [currentRoomId, setCurrentRoomId] = useState<string | undefined>(initialRoom);
   const [bearing, setBearing] = useState(0);
   const [fov, setFov] = useState(90);
   const [mapOpen, setMapOpen] = useState(true);
-  const hasNodes = nodes.length > 0;
+  // Wait for the redrawn cubestrips before the first start, so the tour opens in the right room.
+  const [readyFor, setReadyFor] = useState<string | null>(null);
+  if (nodes.length > 0 && pendingIds.length === 0 && readyFor !== projection) {
+    setReadyFor(projection);
+  }
+  const hasNodes = nodes.length > 0 && readyFor === projection;
 
   // Create the viewer once there is something to show; destroy it when that's gone.
   useEffect(() => {
     if (!hasNodes || !containerRef.current) {
       return;
     }
-    const start = initialRoom && available.has(initialRoom) ? initialRoom : nodes[0]!.id;
+    const wanted = requested.current ?? initialRoom;
+    const start = wanted && available.has(wanted) ? wanted : nodes[0]!.id;
     const viewer = new Viewer({
       container: containerRef.current,
+      ...(projection === "cubemap" ? { adapter: CubemapAdapter } : {}),
       navbar: ["zoom", "move", "caption", "fullscreen"],
       defaultYaw: 0,
       touchmoveTwoFingers: false,
@@ -105,9 +158,9 @@ export const TourViewer = forwardRef<TourViewerHandle, TourViewerProps>(function
       pluginRef.current = null;
       lastNodes.current = new Map();
     };
-    // The viewer is created once; later changes go through the effect below.
+    // The viewer is created once per projection; later changes go through the effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasNodes]);
+  }, [hasNodes, projection]);
 
   // Apply tour changes without recreating the viewer.
   useEffect(() => {
@@ -177,7 +230,7 @@ export const TourViewer = forwardRef<TourViewerHandle, TourViewerProps>(function
       {hasNodes ? (
         <div ref={containerRef} className="pgt-viewer-canvas" />
       ) : (
-        <div className="pgt-viewer-empty">{labels.emptyTour}</div>
+        <div className="pgt-viewer-empty">{pendingIds.length > 0 ? labels.loading : labels.emptyTour}</div>
       )}
       {hasNodes && miniMap && tour.rooms.length > 1 && (
         <div className={`pgt-minimap${mapOpen ? "" : " is-closed"}`}>

@@ -1,4 +1,4 @@
-import type { PanoramaSource } from "../src";
+import { cubestripFace, detectProjection, type PanoramaSource } from "../src";
 
 /** The demo keeps uploaded photos in IndexedDB, so a tour survives a reload. Nothing leaves the browser. */
 
@@ -29,15 +29,28 @@ async function run<T>(mode: IDBTransactionMode, action: (store: IDBObjectStore) 
   });
 }
 
-function toSource(photo: StoredPhoto): PanoramaSource {
+/** Equirectangular or cubestrip, told apart by the image size (6:1 = cubestrip). */
+async function toSource(photo: StoredPhoto): Promise<PanoramaSource> {
   const url = URL.createObjectURL(photo.blob);
-  return { id: photo.id, url, thumbnailUrl: url, label: photo.name };
+  const source: PanoramaSource = { id: photo.id, url, thumbnailUrl: url, label: photo.name };
+  try {
+    const bitmap = await createImageBitmap(photo.blob);
+    const projection = detectProjection(bitmap.width, bitmap.height);
+    bitmap.close();
+    if (projection === "cubestrip") {
+      source.projection = projection;
+      source.thumbnailUrl = await cubestripFace(source, "front", 512);
+    }
+  } catch {
+    // not decodable here: leave it equirectangular
+  }
+  return source;
 }
 
 export async function loadUploads(): Promise<PanoramaSource[]> {
   try {
     const photos = await run<StoredPhoto[]>("readonly", (store) => store.getAll() as IDBRequest<StoredPhoto[]>);
-    return photos.map(toSource);
+    return await Promise.all(photos.map(toSource));
   } catch {
     return [];
   }
@@ -52,7 +65,7 @@ export async function addUploads(files: FileList): Promise<PanoramaSource[]> {
     } catch {
       // Private mode: keep it for this session only.
     }
-    added.push(toSource(photo));
+    added.push(await toSource(photo));
   }
   return added;
 }
