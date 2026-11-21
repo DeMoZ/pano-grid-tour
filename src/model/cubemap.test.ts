@@ -65,6 +65,32 @@ describe("cubestrips in a tour", () => {
       type: "stripe",
       path: "strip.jpg",
       order: [...CUBESTRIP_ORDER],
+      flipTopBottom: true,
     });
+  });
+});
+
+describe("Photo Sphere Viewer's cubemap adapter with flipTopBottom", () => {
+  // Its textureCoordsToSphericalCoords for the top and bottom faces with flipTopBottom (x forward, y right, z down),
+  // copied from @photo-sphere-viewer/cubemap-adapter 5.15: it must read the faces the way cubeLookup does.
+  function psv(face: "top" | "bottom", s: number, t: number) {
+    const u = 2 * (s - 0.5);
+    const v = 2 * (t - 0.5);
+    const [x, y, z] = face === "top" ? [v, u, -1] : [-v, u, 1];
+    const d = Math.hypot(x, y, z);
+    return { yaw: Math.atan2(y / d, x / d), pitch: -Math.asin(z / d) };
+  }
+
+  it.each([
+    ["top", 0.5, 0.9],
+    ["top", 0.8, 0.3],
+    ["bottom", 0.5, 0.1],
+    ["bottom", 0.2, 0.7],
+  ] as const)("%s face at (%d, %d) is the same point", (face, s, t) => {
+    const { yaw, pitch } = psv(face, s, t);
+    const hit = cubeLookup(yaw, pitch);
+    expect(hit.face).toBe(face);
+    expect(hit.s).toBeCloseTo(s);
+    expect(hit.t).toBeCloseTo(t);
   });
 });

@@ -28,7 +28,11 @@ export function tourToNodes(tour: Tour, panoramas: readonly PanoramaSource[], la
     const source = byId.get(room.panoramaId!)!;
     const node: VirtualTourNode = {
       id: room.id,
-      panorama: isCubestrip(source) ? { type: "stripe", path: source.url, order: [...cubeOrder(source)] } : source.url,
+      // flipTopBottom: our top/bottom faces touch the front with their lower/upper edge (as in a cross layout,
+      // and as `cubeLookup` reads them); Photo Sphere Viewer expects them turned 180° otherwise.
+      panorama: isCubestrip(source)
+        ? { type: "stripe", path: source.url, order: [...cubeOrder(source)], flipTopBottom: true }
+        : source.url,
       name: roomName(room, lang),
       sphereCorrection: sphereCorrection(room),
       links: exitsOf(tour, room.id)

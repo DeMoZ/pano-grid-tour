@@ -1,6 +1,6 @@
 {
   "name": "pano-grid-tour",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React editor and viewer for 360° panorama tours laid out as rooms on a grid, built on Photo Sphere Viewer",
   "license": "MIT",
   "author": "Roman Kolychev",
